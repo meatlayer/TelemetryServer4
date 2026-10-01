@@ -1,23 +1,30 @@
-﻿var Funbit;
+﻿/// <reference path="typings/jquery.d.ts" />
+/// <reference path="typings/jqueryui.d.ts" />
+/// <reference path="typings/signalr.d.ts" />
+var Funbit;
 (function (Funbit) {
+    var Ets;
     (function (Ets) {
+        var Telemetry;
         (function (Telemetry) {
-            var Ets2Game = (function () {
+            // default telemetry values used when game connection is lost
+            var Ets2Game = /** @class */ (function () {
                 function Ets2Game() {
                     this.connected = false;
+                    this.gameName = "";
                     this.paused = false;
                     this.time = "";
                     this.timeScale = 0;
                     this.nextRestStopTime = "";
+                    this.nextMandatoryBreakTime = "";
                     this.version = "";
                     this.telemetryPluginVersion = "";
                     this.telemetryServerVersion = "";
-                    this.maxTrailerCount = "";
+                    this.maxTrailerCount = 10;
                 }
                 return Ets2Game;
-            })();
-
-            var Ets2Job = (function () {
+            }());
+            var Ets2Job = /** @class */ (function () {
                 function Ets2Job() {
                     this.income = 0;
                     this.deadlineTime = "";
@@ -28,11 +35,11 @@
                     this.destinationCompany = "";
                     this.specialTransport = false;
                     this.jobMarket = "";
+                    this.plannedDistanceKm = 0;
                 }
                 return Ets2Job;
-            })();
-
-            var Ets2Truck = (function () {
+            }());
+            var Ets2Truck = /** @class */ (function () {
                 function Ets2Truck() {
                     this.id = "";
                     this.make = "";
@@ -58,6 +65,9 @@
                     this.wearCabin = 0;
                     this.wearChassis = 0;
                     this.wearWheels = 0;
+                    this.differentialLock = false;
+                    this.liftAxle = false;
+                    this.liftAxleIndicator = false;
                     this.userSteer = 0;
                     this.userThrottle = 0;
                     this.userBrake = 0;
@@ -78,7 +88,7 @@
                     this.brakeTemperature = 0;
                     this.adblue = 0;
                     this.adblueCapacity = 0;
-                    this.adblueAverageConsumpton = 0;
+                    this.adblueAverageConsumption = 0;
                     this.adblueWarningOn = false;
                     this.airPressure = 0;
                     this.airPressureWarningOn = false;
@@ -109,19 +119,19 @@
                     this.lightsBeaconOn = false;
                     this.lightsBrakeOn = false;
                     this.lightsReverseOn = false;
+                    this.hazardWarningOn = false;
+                    this.licensePlate = "";
+                    this.licensePlateCountryId = "";
+                    this.licensePlateCountry = "";
                     this.placement = new Ets2Placement();
                     this.acceleration = new Ets2Vector();
                     this.head = new Ets2Vector();
                     this.cabin = new Ets2Vector();
                     this.hook = new Ets2Vector();
-                    this.licensePlate = "";
-                    this.licensePlateCountryId = "";
-                    this.licensePlateCountry = "";
                 }
                 return Ets2Truck;
-            })();
-
-            var Ets2Cargo = (function () {
+            }());
+            var Ets2Cargo = /** @class */ (function () {
                 function Ets2Cargo() {
                     this.cargoLoaded = false;
                     this.cargoId = "";
@@ -132,17 +142,19 @@
                     this.damage = 0;
                 }
                 return Ets2Cargo;
-            })();
-
-            var Ets2Trailer = (function() {
+            }());
+            var Ets2Trailer = /** @class */ (function () {
                 function Ets2Trailer() {
                     this.trailerNumber = 0;
                     this.attached = false;
-					this.present = false;
+                    this.present = false;
                     this.id = "";
                     this.name = "";
                     this.wearWheels = 0;
                     this.wearChassis = 0;
+                    this.wearBody = 0;
+                    this.liftAxle = false;
+                    this.liftAxleIndicator = false;
                     this.cargoDamage = 0;
                     this.cargoAccessoryId = "";
                     this.brandId = "";
@@ -156,27 +168,24 @@
                     this.placement = new Ets2Placement();
                 }
                 return Ets2Trailer;
-            })();
-
-            var Ets2Navigation = (function () {
+            }());
+            var Ets2Navigation = /** @class */ (function () {
                 function Ets2Navigation() {
                     this.estimatedTime = "";
                     this.estimatedDistance = 0;
                     this.speedLimit = 0;
                 }
                 return Ets2Navigation;
-            })();
-
-            var Ets2FinedEvent = (function () {
+            }());
+            var Ets2FinedEvent = /** @class */ (function () {
                 function Ets2FinedEvent() {
                     this.fineOffense = "";
                     this.fineAmount = 0;
                     this.fined = false;
                 }
                 return Ets2FinedEvent;
-            })();
-
-            var Ets2JobEvent = (function () {
+            }());
+            var Ets2JobEvent = /** @class */ (function () {
                 function Ets2JobEvent() {
                     this.jobFinished = false;
                     this.jobCancelled = false;
@@ -185,23 +194,22 @@
                     this.revenue = 0;
                     this.earnedXp = 0;
                     this.cargoDamage = 0;
+                    this.vehicleDamage = 0;
                     this.distance = 0;
                     this.deliveryTime = "";
                     this.autoparkUsed = false;
                     this.autoloadUsed = false;
                 }
                 return Ets2JobEvent;
-            })();
-
-            var Ets2TollgateEvent = (function () {
+            }());
+            var Ets2TollgateEvent = /** @class */ (function () {
                 function Ets2TollgateEvent() {
                     this.tollgateUsed = false;
                     this.payAmount = 0;
                 }
                 return Ets2TollgateEvent;
-            })();
-
-            var Ets2FerryEvent = (function () {
+            }());
+            var Ets2FerryEvent = /** @class */ (function () {
                 function Ets2FerryEvent() {
                     this.ferryUsed = false;
                     this.sourceName = "";
@@ -211,9 +219,8 @@
                     this.payAmount = 0;
                 }
                 return Ets2FerryEvent;
-            })();
-
-            var Ets2TrainEvent = (function () {
+            }());
+            var Ets2TrainEvent = /** @class */ (function () {
                 function Ets2TrainEvent() {
                     this.trainUsed = false;
                     this.sourceName = "";
@@ -223,18 +230,77 @@
                     this.payAmount = 0;
                 }
                 return Ets2TrainEvent;
-            })();
-
-            var Ets2Vector = (function () {
+            }());
+            var Ets2CarJob = /** @class */ (function () {
+                function Ets2CarJob() {
+                    this.active = false;
+                    this.market = "";
+                    this.income = 0;
+                    this.deliveryTime = "";
+                    this.plannedDistanceKm = 0;
+                    this.cargoId = "";
+                    this.cargo = "";
+                    this.unitCount = 0;
+                    this.sourceCityId = "";
+                    this.sourceCity = "";
+                    this.sourceCompanyId = "";
+                    this.sourceCompany = "";
+                    this.destinationCityId = "";
+                    this.destinationCity = "";
+                    this.destinationCompanyId = "";
+                    this.destinationCompany = "";
+                    this.customerPrioCargoHandling = false;
+                    this.customerPrioTime = false;
+                    this.customerPrioVehicle = false;
+                    this.cancelled = false;
+                    this.delivered = false;
+                    this.cancelPenalty = 0;
+                    this.revenue = 0;
+                    this.earnedXp = 0;
+                    this.cargoDamage = 0;
+                    this.vehicleDamage = 0;
+                    this.distanceKm = 0;
+                    this.deliveredDeliveryTime = "";
+                }
+                return Ets2CarJob;
+            }());
+            var Ets2BusJob = /** @class */ (function () {
+                function Ets2BusJob() {
+                    this.active = false;
+                    this.income = 0;
+                    this.deliveryTime = "";
+                    this.plannedDistanceKm = 0;
+                    this.cargoId = "";
+                    this.cargo = "";
+                    this.unitCount = 0;
+                    this.sourceCityId = "";
+                    this.sourceCity = "";
+                    this.sourceCompanyId = "";
+                    this.sourceCompany = "";
+                    this.destinationCityId = "";
+                    this.destinationCity = "";
+                    this.destinationCompanyId = "";
+                    this.destinationCompany = "";
+                }
+                return Ets2BusJob;
+            }());
+            var Ets2RefuelEvent = /** @class */ (function () {
+                function Ets2RefuelEvent() {
+                    this.refueling = false;
+                    this.refuelPayed = false;
+                    this.amount = 0;
+                }
+                return Ets2RefuelEvent;
+            }());
+            var Ets2Vector = /** @class */ (function () {
                 function Ets2Vector() {
                     this.x = 0;
                     this.y = 0;
                     this.z = 0;
                 }
                 return Ets2Vector;
-            })();
-
-            var Ets2Placement = (function () {
+            }());
+            var Ets2Placement = /** @class */ (function () {
                 function Ets2Placement() {
                     this.x = 0;
                     this.y = 0;
@@ -244,14 +310,15 @@
                     this.roll = 0;
                 }
                 return Ets2Placement;
-            })();
-
-            var Ets2TelemetryData = (function () {
+            }());
+            var Ets2TelemetryData = /** @class */ (function () {
                 function Ets2TelemetryData() {
                     this.game = new Ets2Game();
                     this.truck = new Ets2Truck();
                     this.cargo = new Ets2Cargo();
                     this.job = new Ets2Job();
+                    this.carJob = new Ets2CarJob();
+                    this.busJob = new Ets2BusJob();
                     this.navigation = new Ets2Navigation();
                     this.trailer1 = new Ets2Trailer();
                     this.trailer2 = new Ets2Trailer();
@@ -268,11 +335,11 @@
                     this.tollgateEvent = new Ets2TollgateEvent();
                     this.ferryEvent = new Ets2FerryEvent();
                     this.trainEvent = new Ets2TrainEvent();
+                    this.refuelEvent = new Ets2RefuelEvent();
                 }
                 return Ets2TelemetryData;
-            })();
-
-            var Dashboard = (function () {
+            }());
+            var Dashboard = /** @class */ (function () {
                 function Dashboard(telemetryEndpointUrl, skinConfig) {
                     var _this = this;
                     this.$cache = [];
@@ -287,11 +354,11 @@
                     this.skinConfig = skinConfig;
                     this.utils = this.utilityFunctions(skinConfig);
                     this.initializeRequestAnimationFrame();
-
+                    // call custom skin initialization function
                     this.initialize(skinConfig, this.utils);
-
+                    // run infinite animation loop
                     this.animationLoop();
-
+                    // initialize SignalR after some time to overcome some browser bugs
                     this.reconnectTimer = this.setTimer(this.reconnectTimer, function () {
                         _this.initializeHub();
                         _this.connectToHub();
@@ -300,22 +367,21 @@
                 Dashboard.prototype.setTimer = function (timer, func, delay) {
                     if (timer)
                         clearTimeout(timer);
-                    return setTimeout(function () {
-                        return func();
-                    }, delay);
+                    return setTimeout(function () { return func(); }, delay);
                 };
-
                 Dashboard.prototype.initializeRequestAnimationFrame = function () {
                     var _this = this;
+                    // requestAnimationFrame polyfill
                     var vendors = ['ms', 'moz', 'webkit', 'o'];
                     for (var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
                         window.requestAnimationFrame = window[vendors[x] + 'RequestAnimationFrame'];
-                        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame'] || window[vendors[x] + 'CancelRequestAnimationFrame'];
+                        window.cancelAnimationFrame = window[vendors[x] + 'CancelAnimationFrame']
+                            || window[vendors[x] + 'CancelRequestAnimationFrame'];
                     }
                     if (!window.requestAnimationFrame)
                         window.requestAnimationFrame = function (callback) {
                             var now = Date.now();
-
+                            // on old devices shim to set timer with target frame rate of 30 fps
                             var timeToCall = Math.max(0, (1000 / 30.0) - (now - _this.lastRafShimTime));
                             var id = window.setTimeout(function () {
                                 callback(now + timeToCall);
@@ -328,21 +394,18 @@
                             clearTimeout(id);
                         };
                 };
-
                 Dashboard.prototype.animationLoop = function () {
                     var _this = this;
                     this.frame++;
-                    window.requestAnimationFrame(function () {
-                        return _this.animationLoop();
-                    });
-
+                    window.requestAnimationFrame(function () { return _this.animationLoop(); });
+                    // render animated elements
                     if (this.latestData && this.prevData) {
+                        // use our internal renderer first
                         this.internalRender();
-
+                        // and then use skin based renderer
                         this.render(this.frameData, this.utils);
                     }
                 };
-
                 Dashboard.prototype.initializeHub = function () {
                     $.connection.hub.logging = false;
                     $.connection.hub.url = Telemetry.Configuration.getUrl('/signalr');
@@ -351,7 +414,6 @@
                         $.connection.hub.stop();
                     };
                 };
-
                 Dashboard.prototype.connectToHub = function () {
                     var _this = this;
                     $.connection.hub.stop();
@@ -375,7 +437,6 @@
                         _this.reconnectToHubAfterDelay();
                     });
                 };
-
                 Dashboard.prototype.reconnectToHubAfterDelay = function () {
                     var _this = this;
                     this.process(null, Telemetry.Strings.connectingToServer);
@@ -383,50 +444,54 @@
                         _this.connectToHub();
                     }, Dashboard.reconnectDelay);
                 };
-
                 Dashboard.prototype.requestDataUpdate = function () {
                     this.lastDataRequestFrame = this.frame;
                     this.ets2TelemetryHub.server['requestData']();
                 };
-
                 Dashboard.prototype.dataUpdateCallback = function (jsonData) {
                     var data = JSON.parse(jsonData);
                     this.process(data);
                     this.requestDataUpdate();
                 };
-
                 Dashboard.prototype.process = function (data, reason) {
-                    if (typeof reason === "undefined") { reason = ''; }
+                    if (reason === void 0) { reason = ''; }
                     if (data != null && data.game != null && !data.game.connected) {
+                        // if we're not connected we reset the data 
                         reason = Telemetry.Strings.connectedAndWaitingForDrive;
-
-                        data = new Ets2TelemetryData();
-                    } else if (data === null) {
+                        // use default values
                         data = new Ets2TelemetryData();
                     }
-
+                    else if (data === null) {
+                        // if we don't have real data we use default values
+                        data = new Ets2TelemetryData();
+                    }
+                    // update status message with failure reason
                     $('.statusMessage').html(reason);
-
+                    // tweak data using custom skin based filter
                     data = this.filter(data, this.utils);
-
+                    // tweak data using default internal filter
                     data = this.internalFilter(data);
-
+                    // update data buffers
                     this.lastDataRequestFrameDiff = this.frame - this.lastDataRequestFrame;
                     this.prevData = this.latestData;
                     this.frameData = this.latestData;
                     this.latestData = data;
                 };
-
                 Dashboard.prototype.internalFilter = function (data) {
+                    // convert ISO8601 to default readable format
                     data.game.time = this.timeToReadableString(data.game.time);
                     data.job.deadlineTime = this.timeToReadableString(data.job.deadlineTime);
                     data.job.remainingTime = this.timeDifferenceToReadableString(data.job.remainingTime);
+                    // car/bus job delivery windows (guarded: older servers may not send them)
+                    if (data.carJob != null)
+                        data.carJob.deliveryTime = this.timeToReadableString(data.carJob.deliveryTime);
+                    if (data.busJob != null)
+                        data.busJob.deliveryTime = this.timeToReadableString(data.busJob.deliveryTime);
                     return data;
                 };
-
                 Dashboard.prototype.internalRender = function (parent, propNamePrefix) {
-                    if (typeof parent === "undefined") { parent = null; }
-                    if (typeof propNamePrefix === "undefined") { propNamePrefix = null; }
+                    if (parent === void 0) { parent = null; }
+                    if (propNamePrefix === void 0) { propNamePrefix = null; }
                     var propSplitter = '.';
                     var cssPropertySplitter = '-';
                     var frames = Math.max(1, this.lastDataRequestFrameDiff) * 1.0;
@@ -434,53 +499,76 @@
                     for (var propName in object) {
                         var fullPropName = propNamePrefix != null ? propNamePrefix + propName : propName;
                         var value = object[propName];
-                        var $e = this.$cache[fullPropName] !== undefined ? this.$cache[fullPropName] : this.$cache[fullPropName] = $('.' + this.replaceAll(fullPropName, propSplitter, cssPropertySplitter));
+                        var $e = this.$cache[fullPropName] !== undefined
+                            ? this.$cache[fullPropName]
+                            : this.$cache[fullPropName] = $('.' + this
+                                .replaceAll(fullPropName, propSplitter, cssPropertySplitter));
                         if (typeof value === "number") {
+                            // calculate interpolated value for current frame
                             var prevValue = this.resolveObjectByPath(this.prevData, fullPropName);
                             value = this.resolveObjectByPath(this.frameData, fullPropName) + (value - prevValue) / frames;
                             if (propNamePrefix == null) {
                                 this.frameData[propName] = value;
-                            } else {
+                            }
+                            else {
                                 var parentPropName = fullPropName.substr(0, fullPropName.lastIndexOf(propSplitter));
                                 this.resolveObjectByPath(this.frameData, parentPropName)[propName] = value;
                             }
                             var $meters = $e.filter('[data-type="meter"]');
                             if ($meters.length > 0) {
+                                // if type is set to meter 
+                                // then we use this HTML element 
+                                // as a rotating meter "arrow"
                                 var minValue = $meters.data('min');
                                 if (/^[a-z\.]+$/i.test(minValue)) {
+                                    // if data-min attribute points
+                                    // to a property name then we use its value
                                     minValue = this.resolveObjectByPath(this.latestData, minValue);
                                 }
                                 var maxValue = $meters.data('max');
                                 if (/^[a-z\.]+$/i.test(maxValue)) {
+                                    // if data-max attribute points
+                                    // to a property name then we use its value
                                     maxValue = this.resolveObjectByPath(this.latestData, maxValue);
                                 }
                                 this.setMeter($meters, value, parseFloat(minValue), parseFloat(maxValue));
-                            } else {
+                            }
+                            else {
                                 var $notMeters = $e.not('[data-type="meter"]');
                                 if ($notMeters.length > 0) {
+                                    // convert number to a string
+                                    // and render it by updating HTML element content
                                     value = "" + Math.round(value);
                                     $notMeters.html(value);
                                 }
                             }
-                        } else if (typeof value === "boolean") {
+                        }
+                        else if (typeof value === "boolean") {
+                            // render boolean by adding/removing "yes" CSS class
                             if (value) {
                                 $e.addClass('yes');
-                            } else {
+                            }
+                            else {
                                 $e.removeClass('yes');
                             }
-                        } else if (typeof value === "string") {
+                        }
+                        else if (typeof value === "string") {
+                            // render string value by updating HTML element content
                             $e.html(value);
-                        } else if ($.isArray(value)) {
+                        }
+                        else if ($.isArray(value)) {
+                            // recursively process arrays
                             for (var j = 0; j < value.length; j++) {
                                 this.internalRender(value[j], fullPropName + propSplitter + j + propSplitter);
                             }
-                        } else if (typeof value === "object") {
+                        }
+                        else if (typeof value === "object") {
+                            // recursively process complex objects
                             this.internalRender(value, fullPropName + propSplitter);
                         }
                         $e.attr('data-value', value);
                     }
                 };
-
                 Dashboard.prototype.setMeter = function ($meter, value, minValue, maxValue) {
                     var maxValue = maxValue ? maxValue : $meter.data('max');
                     var minAngle = $meter.data('min-angle');
@@ -499,50 +587,49 @@
                     };
                     updateTransform('rotate(' + angle + 'deg)');
                 };
-
+                // utility functions available for custom skins:
                 Dashboard.prototype.utilityFunctions = function (skinConfig) {
                     var _this = this;
                     return {
                         formatInteger: this.formatInteger,
                         formatFloat: this.formatFloat,
-                        preloadImages: function (images) {
-                            return _this.preloadImages(skinConfig, images);
-                        },
+                        preloadImages: function (images) { return _this.preloadImages(skinConfig, images); },
                         resolveObjectByPath: this.resolveObjectByPath
                     };
                 };
-
                 Dashboard.prototype.preloadImages = function (skinConfig, images) {
                     $(images).each(function () {
-                        $('<img/>')[0]['src'] = Telemetry.Configuration.getInstance().getSkinResourceUrl(skinConfig, this);
+                        $('<img/>')[0]['src'] = Telemetry.Configuration.getInstance()
+                            .getSkinResourceUrl(skinConfig, this);
                     });
                 };
-
                 Dashboard.prototype.formatInteger = function (num, digits) {
                     var output = num + "";
                     while (output.length < digits)
                         output = "0" + output;
                     return output;
                 };
-
                 Dashboard.prototype.formatFloat = function (num, digits) {
                     var power = Math.pow(10, digits || 0);
                     return String((Math.round(num * power) / power).toFixed(digits));
                 };
-
                 Dashboard.prototype.isIso8601 = function (date) {
                     return /(\d{4})-(\d{2})-(\d{2})T(\d{2})\:(\d{2})\:(\d{2})Z/.test(date);
                 };
-
                 Dashboard.prototype.timeToReadableString = function (date) {
+                    // if we have ISO8601 (in UTC) then make it readable
+                    // in the following default format: "Wednesday 08:26"
                     if (this.isIso8601(date)) {
                         var d = new Date(date);
-                        return Telemetry.Strings.dayOfTheWeek[d.getUTCDay()] + ' ' + this.formatInteger(d.getUTCHours(), 2) + ':' + this.formatInteger(d.getUTCMinutes(), 2);
+                        return Telemetry.Strings.dayOfTheWeek[d.getUTCDay()] + ' '
+                            + this.formatInteger(d.getUTCHours(), 2) + ':'
+                            + this.formatInteger(d.getUTCMinutes(), 2);
                     }
                     return date;
                 };
-
                 Dashboard.prototype.timeDifferenceToReadableString = function (date) {
+                    // if we have ISO8601 (in UTC) then make it readable
+                    // in the following default format: "1 day 8 hours 26 minutes"
                     if (this.isIso8601(date)) {
                         var d = new Date(date);
                         var dys = d.getUTCDate() - 1;
@@ -559,34 +646,37 @@
                     }
                     return date;
                 };
-
                 Dashboard.prototype.replaceAll = function (input, search, replace) {
                     return input.replace(new RegExp('\\' + search, 'g'), replace);
                 };
-
                 Dashboard.prototype.resolveObjectByPath = function (obj, path) {
+                    // access obj by property path, 
+                    // example:
+                    // "truck.speed"
+                    // "truck.wheels"
+                    // or for array elements:
+                    // "truck.wheels.0.steerable"
                     return path.split('.').reduce(function (prev, curr) {
                         return prev ? prev[curr] : undefined;
                     }, obj || self);
                 };
-
+                // "forward" declarations for custom skins:
+                // define custom data filter method for skins
                 Dashboard.prototype.filter = function (data, utils) {
                     return data;
                 };
-
+                // define custom data render method for skins
                 Dashboard.prototype.render = function (data, utils) {
                     return;
                 };
-
+                // define custom initialization function
                 Dashboard.prototype.initialize = function (skinConfig, utils) {
                     return;
                 };
                 Dashboard.reconnectDelay = 1000;
                 return Dashboard;
-            })();
+            }());
             Telemetry.Dashboard = Dashboard;
-        })(Ets.Telemetry || (Ets.Telemetry = {}));
-        var Telemetry = Ets.Telemetry;
-    })(Funbit.Ets || (Funbit.Ets = {}));
-    var Ets = Funbit.Ets;
+        })(Telemetry = Ets.Telemetry || (Ets.Telemetry = {}));
+    })(Ets = Funbit.Ets || (Funbit.Ets = {}));
 })(Funbit || (Funbit = {}));

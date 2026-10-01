@@ -240,12 +240,12 @@ namespace Funbit.Ets.Telemetry.Server
 
         void donateToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ProcessHelper.OpenUrl("http://funbit.info/ets2/donate.htm");
+            ProcessHelper.OpenUrl("https://teriohin.ru/dtml/donate.html");
         }
 
         void helpToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ProcessHelper.OpenUrl("https://github.com/Funbit/ets2-telemetry-server");
+            ProcessHelper.OpenUrl("https://github.com/meatlayer/TelemetryServer4/releases");
         }
 
         void aboutToolStripMenuItem_Click(object sender, EventArgs e)

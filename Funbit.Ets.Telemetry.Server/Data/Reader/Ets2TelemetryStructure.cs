@@ -11,12 +11,22 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         const int GeneralStringSize = 64;
         private const int MaxWheelCount = 16;
 
-        public int time;
+        public byte sdkActive;
+
+        // 3 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        private readonly byte[] padding0;
+
         public byte paused;
 
-        // 35 byte padding
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 35)]
-        private readonly byte[] padding0;
+        // 3 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 3)]
+        private readonly byte[] padding0b;
+
+        public ulong time;
+        public ulong simulatedTime;
+        public ulong renderTime;
+        public long multiplayerTimeOffset;
 
         public int ets2_telemetry_plugin_revision;
         public int ets2_version_major;
@@ -33,7 +43,8 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public int selectorCount;
         public int jobDeadline;
         public int maxTrailerCount;
-        public int unitCount;                    // config_ui
+        public int unitCount;
+        public int plannedDistanceKm;            // config_ui
 
         public int shifterSlot;
         public int retarderBrake;
@@ -46,10 +57,12 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
         public uint[] hshifterBitmask;            // truck_ui
 
-        public uint jobDeliveredDeliveryTime;     // gameplay_ui;
+        public uint jobDeliveredDeliveryTime;
+        public uint jobStartingTime;
+        public uint jobFinishedTime;             // gameplay_ui
 
-        // 60 byte padding
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 60)]
+        // 48 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 48)]
         private readonly byte[] padding1;         // buffer_ui
 
         public int nextRestStop;                  // common_i
@@ -61,8 +74,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
 
         public int jobDeliveredEarnedXp;          // gameplay_i
 
-        // 56 byte padding
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 56)]
+        public int nextMandatoryBreak;
+
+        // 52 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 52)]
         private readonly byte[] padding2;         // buffer_i
 
         public float localScale;                  // common_f
@@ -132,12 +147,15 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] truck_wheelLiftOffset;     // truck_f
 
         public float jobDeliveredCargoDamage;
-        public float jobDeliveredDistanceKm;      // gameplay_f
+        public float jobDeliveredDistanceKm;
+        public float refuelAmount;               // gameplay_f
 
         public float cargoDamage;                 // job_f
 
-        // 32 byte padding
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+        public float adblueAvgConsumption;
+
+        // 24 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 24)]
         private readonly byte[] padding3;         // buffer_f
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -174,17 +192,23 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public byte lightsBeacon;
         public byte lightsBrake;
         public byte lightsReverse;
+        public byte lightsHazard;
         public byte cruiseControl;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public byte[] truckWheelOnGround;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-        public byte[] shifterToggle;              // truck_b
+        public byte[] shifterToggle;
+        public byte differentialLock;
+        public byte liftAxle;
+        public byte liftAxleIndicator;
+        public byte trailerLiftAxle;
+        public byte trailerLiftAxleIndicator;     // truck_b
 
         public byte jobDelieveredAutoparkUsed;
         public byte jobDeliveredAutoloadUsed;     // gameplay_b
 
-        // 31 byte padding
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 31)]
+        // 25 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 25)]
         private readonly byte[] padding4;         // buffer_b
 
         public float cabinPositionX;
@@ -298,7 +322,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public byte[] jobMarket;                  // config_s
 
 
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 16)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
         public byte[] fineOffence;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
         public byte[] ferrySourceName;
@@ -317,8 +341,8 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
         public byte[] trainTargetId;              // gameplay_s
 
-        // 36 byte padding
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 36)]
+        // 20 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 20)]
         private readonly byte[] padding8;         // buffer_s
 
         public ulong jobIncome;                   // config_ull
@@ -345,11 +369,15 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public byte fined;
         public byte tollgate;
         public byte ferry;
-        public byte train;                        // special_b
+        public byte train;
+        public byte refuel;
+        public byte refuelPayed;
+        public byte carJobCancelled;
+        public byte carJobDelivered;             // special_b
 
-        // 92 byte padding
-        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 92)]
-        private readonly byte[] padding11;        // buffer_ll
+        // 88 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 88)]
+        private readonly byte[] padding11;        // buffer_special
 
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1600)]
         public byte[] padding12;                // substances
@@ -382,6 +410,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer0cargoDamage;
         public float trailer0wearChassis;
         public float trailer0wearWheels;
+        public float trailer0wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer0wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -418,6 +447,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer0wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer0wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer0padding1;          // buffer_fv
 
         public double trailer0worldX;
         public double trailer0worldY;
@@ -473,6 +506,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer1cargoDamage;
         public float trailer1wearChassis;
         public float trailer1wearWheels;
+        public float trailer1wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer1wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -509,6 +543,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer1wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer1wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer1padding1;          // buffer_fv
 
         public double trailer1worldX;
         public double trailer1worldY;
@@ -564,6 +602,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer2cargoDamage;
         public float trailer2wearChassis;
         public float trailer2wearWheels;
+        public float trailer2wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer2wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -600,6 +639,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer2wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer2wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer2padding1;          // buffer_fv
 
         public double trailer2worldX;
         public double trailer2worldY;
@@ -655,6 +698,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer3cargoDamage;
         public float trailer3wearChassis;
         public float trailer3wearWheels;
+        public float trailer3wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer3wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -691,6 +735,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer3wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer3wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer3padding1;          // buffer_fv
 
         public double trailer3worldX;
         public double trailer3worldY;
@@ -746,6 +794,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer4cargoDamage;
         public float trailer4wearChassis;
         public float trailer4wearWheels;
+        public float trailer4wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer4wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -782,6 +831,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer4wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer4wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer4padding1;          // buffer_fv
 
         public double trailer4worldX;
         public double trailer4worldY;
@@ -837,6 +890,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer5cargoDamage;
         public float trailer5wearChassis;
         public float trailer5wearWheels;
+        public float trailer5wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer5wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -873,6 +927,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer5wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer5wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer5padding1;          // buffer_fv
 
         public double trailer5worldX;
         public double trailer5worldY;
@@ -928,6 +986,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer6cargoDamage;
         public float trailer6wearChassis;
         public float trailer6wearWheels;
+        public float trailer6wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer6wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -964,6 +1023,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer6wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer6wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer6padding1;          // buffer_fv
 
         public double trailer6worldX;
         public double trailer6worldY;
@@ -1019,6 +1082,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer7cargoDamage;
         public float trailer7wearChassis;
         public float trailer7wearWheels;
+        public float trailer7wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer7wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -1055,6 +1119,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer7wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer7wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer7padding1;          // buffer_fv
 
         public double trailer7worldX;
         public double trailer7worldY;
@@ -1110,6 +1178,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer8cargoDamage;
         public float trailer8wearChassis;
         public float trailer8wearWheels;
+        public float trailer8wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer8wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -1146,6 +1215,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float[] trailer8wheelPositionY;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer8wheelPositionZ;            // con_fv
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer8padding1;          // buffer_fv
 
         public double trailer8worldX;
         public double trailer8worldY;
@@ -1201,6 +1274,7 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         public float trailer9cargoDamage;
         public float trailer9wearChassis;
         public float trailer9wearWheels;
+        public float trailer9wearBody;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer9wheelSuspDeflection;
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
@@ -1238,6 +1312,10 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = MaxWheelCount)]
         public float[] trailer9wheelPositionZ;            // con_fv
 
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] trailer9padding1;          // buffer_fv
+
         public double trailer9worldX;
         public double trailer9worldY;
         public double trailer9worldZ;
@@ -1266,6 +1344,102 @@ namespace Funbit.Ets.Telemetry.Server.Data.Reader
         [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
         public byte[] trailer9licensePlateCountryId;      // con_s
         #endregion
+
+        #endregion
+
+        #region CarJob / BusJob (15th zone, SCS SDK 1.15)
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCargoId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCargo;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCityDestinationId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCityDestination;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCompanyDestinationId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCompanyDestination;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCitySourceId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCitySource;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCompanySourceId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] carJobCompanySource;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 32)]
+        public byte[] carJobMarket;                  // car_job_s
+
+        public int carJobUnitCount;
+        public int carJobDeliveryTime;
+        public int carJobPlannedDistanceKm;
+        public int carJobDeliveredEarnedXp;
+        public int carJobDeliveredDeliveryTime;
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] carJobUiPadding;     // car_job_ui
+
+        public byte carJobActive;
+        public byte carJobCustomerPrioCargo;
+        public byte carJobCustomerPrioTime;
+        public byte carJobCustomerPrioVehicle;
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] carJobBPadding;      // car_job_b
+
+        public ulong carJobIncome;                   // car_job_ull
+
+        public long carJobCancelledPenalty;
+        public long carJobDeliveredRevenue;          // car_job_ll
+
+        public float carJobDeliveredCargoDamage;
+        public float carJobDeliveredVehicleDamage;
+        public float carJobDeliveredDistanceKm;
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] carJobFPadding;      // car_job_f
+
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCargoId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCargo;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCityDestinationId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCityDestination;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCompanyDestinationId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCompanyDestination;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCitySourceId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCitySource;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCompanySourceId;
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = GeneralStringSize)]
+        public byte[] busJobCompanySource;           // bus_job_s
+
+        public int busJobUnitCount;
+        public int busJobDeliveryTime;
+        public int busJobPlannedDistanceKm;
+
+        // 4 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 4)]
+        private readonly byte[] busJobUiPadding;     // bus_job_ui
+
+        public byte busJobActive;
+
+        // 7 byte padding
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 7)]
+        private readonly byte[] busJobBPadding;      // bus_job_b
+
+        public ulong busJobIncome;                   // bus_job_ull
 
         #endregion
     }

@@ -42,6 +42,16 @@ namespace Funbit.Ets.Telemetry.Server.Data
         IEts2Job Job { get; }
 
         /// <summary>
+        /// Car job information (available since SCS SDK 1.15).
+        /// </summary>
+        IEts2CarJob CarJob { get; }
+
+        /// <summary>
+        /// Bus job information (available since SCS SDK 1.15).
+        /// </summary>
+        IEts2BusJob BusJob { get; }
+
+        /// <summary>
         /// Cargo information.
         /// </summary>
         IEts2Cargo Cargo { get; }
@@ -60,6 +70,8 @@ namespace Funbit.Ets.Telemetry.Server.Data
         IEts2FerryGameplayEvent FerryEvent { get; }
 
         IEts2TrainGameplayEvent TrainEvent { get; }
+
+        IEts2RefuelGameplayEvent RefuelEvent { get; }
     }
 
     public interface IEts2Game
@@ -109,6 +121,14 @@ namespace Funbit.Ets.Telemetry.Server.Data
         /// Example: "0001-01-01T10:52:00Z"
         /// </summary>
         DateTime NextRestStopTime { get; }
+
+        /// <summary>
+        /// Absolute in-game time when the next mandatory break becomes required.
+        /// When the mandatory break simulation is disabled, the behavior of this
+        /// channel is implementation dependent.
+        /// Example: "0001-01-05T10:52:00Z"
+        /// </summary>
+        DateTime NextMandatoryBreakTime { get; }
         /// <summary>
         /// Scale applied to distance and time to compensate 
         /// for the scale of the map (e.g. 1s of real time corresponds 
@@ -407,6 +427,19 @@ namespace Funbit.Ets.Telemetry.Server.Data
         /// </summary>
         float WearWheels { get; }
 
+        /// <summary>
+        /// Is the differential lock enabled or not.
+        /// </summary>
+        bool DifferentialLock { get; }
+        /// <summary>
+        /// Is the lift axle control set to lifted state or not.
+        /// </summary>
+        bool LiftAxle { get; }
+        /// <summary>
+        /// Is the lift axle indicator lit or not.
+        /// </summary>
+        bool LiftAxleIndicator { get; }
+
 
 
 
@@ -486,6 +519,11 @@ namespace Funbit.Ets.Telemetry.Server.Data
         /// Is the reverse light active or not.
         /// </summary>
         bool LightsReverseOn { get; }
+
+        /// <summary>
+        /// Are the hazard warning lights enabled or not.
+        /// </summary>
+        bool HazardWarningOn { get; }
 
         /// <summary>
         /// Is the battery voltage/not charging warning active or not.
@@ -688,6 +726,232 @@ namespace Funbit.Ets.Telemetry.Server.Data
         /// Example: "JCB"
         /// </summary>
         string DestinationCompany { get; }
+
+        /// <summary>
+        /// Planned job distance in simulated kilometers.
+        /// Does not include distance driven using ferry.
+        /// Example: 1240
+        /// </summary>
+        int PlannedDistanceKm { get; }
+    }
+
+    public interface IEts2CarJob
+    {
+        /// <summary>
+        /// Indicates whether a car job is currently active.
+        /// An empty attribute set means there is no car job.
+        /// </summary>
+        bool Active { get; }
+
+        /// <summary>
+        /// The car job market this job is from. Possible values:
+        ///   - quick_job
+        ///   - dispatch_job
+        /// </summary>
+        string Market { get; }
+
+        /// <summary>
+        /// Expected income for the car job without any penalties.
+        /// Example: 2316
+        /// </summary>
+        int Income { get; }
+
+        /// <summary>
+        /// Absolute in-game time of end of car job delivery window.
+        /// Delivering the job after this time will cause it be late.
+        /// Example: "0001-01-09T03:34:00Z"
+        /// </summary>
+        DateTime DeliveryTime { get; }
+
+        /// <summary>
+        /// Planned car job distance in simulated kilometers.
+        /// Does not include distance driven using ferry.
+        /// Example: 1240
+        /// </summary>
+        int PlannedDistanceKm { get; }
+
+        /// <summary>
+        /// Id of the cargo for internal use by code.
+        /// </summary>
+        string CargoId { get; }
+        /// <summary>
+        /// Localized name of the current cargo for display purposes.
+        /// </summary>
+        string Cargo { get; }
+        /// <summary>
+        /// The number of units of cargo.
+        /// Example: 2
+        /// </summary>
+        int UnitCount { get; }
+
+        /// <summary>
+        /// Id of the source city for internal use by code.
+        /// </summary>
+        string SourceCityId { get; }
+        /// <summary>
+        /// Localized name of the source city for display purposes.
+        /// Example: "Linz"
+        /// </summary>
+        string SourceCity { get; }
+        /// <summary>
+        /// Id of the source company for internal use by code.
+        /// </summary>
+        string SourceCompanyId { get; }
+        /// <summary>
+        /// Localized name of the source company for display purposes.
+        /// Example: "DHL"
+        /// </summary>
+        string SourceCompany { get; }
+        /// <summary>
+        /// Id of the destination city for internal use by code.
+        /// </summary>
+        string DestinationCityId { get; }
+        /// <summary>
+        /// Localized name of the destination city for display purposes.
+        /// Example: "Salzburg"
+        /// </summary>
+        string DestinationCity { get; }
+        /// <summary>
+        /// Id of the destination company for internal use by code.
+        /// </summary>
+        string DestinationCompanyId { get; }
+        /// <summary>
+        /// Localized name of the destination company for display purposes.
+        /// Example: "JCB"
+        /// </summary>
+        string DestinationCompany { get; }
+
+        /// <summary>
+        /// Flag indicating whether the car job's customer prioritizes cargo handling.
+        /// </summary>
+        bool CustomerPrioCargoHandling { get; }
+        /// <summary>
+        /// Flag indicating whether the car job's customer prioritizes delivery time.
+        /// </summary>
+        bool CustomerPrioTime { get; }
+        /// <summary>
+        /// Flag indicating whether the car job's customer prioritizes vehicle appearance at delivery.
+        /// </summary>
+        bool CustomerPrioVehicle { get; }
+
+        /// <summary>
+        /// Flag determining whether or not the car job has been cancelled
+        /// (car_job.cancelled event).
+        /// </summary>
+        bool Cancelled { get; }
+        /// <summary>
+        /// Flag determining whether or not the car job has been delivered
+        /// (car_job.delivered event).
+        /// </summary>
+        bool Delivered { get; }
+        /// <summary>
+        /// The penalty amount when the car job is cancelled.
+        /// </summary>
+        int CancelPenalty { get; }
+        /// <summary>
+        /// The amount the player receives when the car job is completed.
+        /// </summary>
+        int Revenue { get; }
+        /// <summary>
+        /// The amount of XP the player received for completing the car job.
+        /// </summary>
+        int EarnedXp { get; }
+        /// <summary>
+        /// The percentage of cargo that was damaged on the delivered car job.
+        /// </summary>
+        float CargoDamage { get; }
+        /// <summary>
+        /// The percentage of the vehicle that was damaged on the delivered car job.
+        /// </summary>
+        float VehicleDamage { get; }
+        /// <summary>
+        /// The distance the player drove to complete the car job, in km.
+        /// </summary>
+        float DistanceKm { get; }
+        /// <summary>
+        /// The total in-game time the player took to complete the car job, in minutes.
+        /// Example: "0001-01-01T04:32:00Z"
+        /// </summary>
+        DateTime DeliveredDeliveryTime { get; }
+    }
+
+    public interface IEts2BusJob
+    {
+        /// <summary>
+        /// Indicates whether a bus job is currently active.
+        /// An empty attribute set means there is no bus job.
+        /// </summary>
+        bool Active { get; }
+
+        /// <summary>
+        /// Expected income for the bus job without any penalties.
+        /// Example: 2316
+        /// </summary>
+        int Income { get; }
+
+        /// <summary>
+        /// Absolute in-game time of end of bus job delivery window.
+        /// Example: "0001-01-09T03:34:00Z"
+        /// </summary>
+        DateTime DeliveryTime { get; }
+
+        /// <summary>
+        /// Planned bus job distance in simulated kilometers.
+        /// Does not include distance driven using ferry.
+        /// Example: 1240
+        /// </summary>
+        int PlannedDistanceKm { get; }
+
+        /// <summary>
+        /// Id of the cargo for internal use by code.
+        /// </summary>
+        string CargoId { get; }
+        /// <summary>
+        /// Localized name of the current cargo for display purposes.
+        /// </summary>
+        string Cargo { get; }
+        /// <summary>
+        /// The number of units of cargo.
+        /// Example: 2
+        /// </summary>
+        int UnitCount { get; }
+
+        /// <summary>
+        /// Id of the source city for internal use by code.
+        /// </summary>
+        string SourceCityId { get; }
+        /// <summary>
+        /// Localized name of the source city for display purposes.
+        /// Example: "Linz"
+        /// </summary>
+        string SourceCity { get; }
+        /// <summary>
+        /// Id of the source company for internal use by code.
+        /// </summary>
+        string SourceCompanyId { get; }
+        /// <summary>
+        /// Localized name of the source company for display purposes.
+        /// Example: "DHL"
+        /// </summary>
+        string SourceCompany { get; }
+        /// <summary>
+        /// Id of the destination city for internal use by code.
+        /// </summary>
+        string DestinationCityId { get; }
+        /// <summary>
+        /// Localized name of the destination city for display purposes.
+        /// Example: "Salzburg"
+        /// </summary>
+        string DestinationCity { get; }
+        /// <summary>
+        /// Id of the destination company for internal use by code.
+        /// </summary>
+        string DestinationCompanyId { get; }
+        /// <summary>
+        /// Localized name of the destination company for display purposes.
+        /// Example: "JCB"
+        /// </summary>
+        string DestinationCompany { get; }
     }
 
     public interface IEts2Trailer
@@ -790,6 +1054,26 @@ namespace Funbit.Ets.Telemetry.Server.Data
         /// Example: 0.0314717
         /// </summary>
         float WearWheels { get; }
+
+        /// <summary>
+        /// Current level of trailer body wear/damage between 0 (min) and 1 (max).
+        /// Example: 0.0314717
+        /// </summary>
+        float WearBody { get; }
+
+        /// <summary>
+        /// Is the trailer lift axle control set to lifted state or not.
+        /// The game reports a single control state for the attached trailer,
+        /// so the value is the same for every trailer.
+        /// </summary>
+        bool LiftAxle { get; }
+
+        /// <summary>
+        /// Is the trailer lift axle indicator lit or not.
+        /// The game reports a single indicator state for the attached trailer,
+        /// so the value is the same for every trailer.
+        /// </summary>
+        bool LiftAxleIndicator { get; }
 
         /// <summary>
         /// For compability, current level of wear/damage between 0 (min) and 1 (max).
@@ -915,6 +1199,13 @@ namespace Funbit.Ets.Telemetry.Server.Data
         float CargoDamage { get; }
 
         /// <summary>
+        /// The percentage of the vehicle that was damaged.
+        /// Filled by car_job.delivered events (SCS SDK 1.15);
+        /// always 0 for regular jobs.
+        /// </summary>
+        float VehicleDamage { get; }
+
+        /// <summary>
         /// The distance the player drove to complete the job, in km
         /// </summary>
         int Distance { get; }
@@ -1012,6 +1303,28 @@ namespace Funbit.Ets.Telemetry.Server.Data
         /// The amount paid by the player
         /// </summary>
         int PayAmount { get; }
+    }
+
+    public interface IEts2RefuelGameplayEvent
+    {
+        /// <summary>
+        /// True while the plugin detects that the truck is being refueled.
+        /// The game does not provide a dedicated refuel event,
+        /// this state is detected by the telemetry plugin from the fuel level.
+        /// </summary>
+        bool Refueling { get; }
+
+        /// <summary>
+        /// True when the last refuel has been finished
+        /// (the engine was started again after refueling).
+        /// </summary>
+        bool RefuelPayed { get; }
+
+        /// <summary>
+        /// Amount of fuel added during the last refuel in liters.
+        /// Example: 412.5
+        /// </summary>
+        float Amount { get; }
     }
 
     #endregion

@@ -13,8 +13,10 @@ module Funbit.Ets.Telemetry {
         time: string = "";
         timeScale: number = 0;
         nextRestStopTime: string = "";
+        nextMandatoryBreakTime: string = "";
         version: string = "";
         telemetryPluginVersion: string = "";
+        telemetryServerVersion: string = "";
 		maxTrailerCount: number = 10;
     }
 
@@ -28,6 +30,7 @@ module Funbit.Ets.Telemetry {
         destinationCompany: string = "";
         specialTransport: boolean = false;
         jobMarket: string = "";
+        plannedDistanceKm: number = 0;
     }
 
     class Ets2Truck {
@@ -55,6 +58,9 @@ module Funbit.Ets.Telemetry {
         wearCabin: number = 0;
         wearChassis: number = 0;
         wearWheels: number = 0;
+        differentialLock: boolean = false;
+        liftAxle: boolean = false;
+        liftAxleIndicator: boolean = false;
         userSteer: number = 0;
         userThrottle: number = 0;
         userBrake: number = 0;
@@ -106,6 +112,7 @@ module Funbit.Ets.Telemetry {
         lightsBeaconOn: boolean = false;
         lightsBrakeOn: boolean = false;
         lightsReverseOn: boolean = false;
+        hazardWarningOn: boolean = false;
         placement: Ets2Placement;
         acceleration: Ets2Vector;
         head: Ets2Vector;
@@ -141,6 +148,9 @@ module Funbit.Ets.Telemetry {
         name: string = "";
         wearWheels: number = 0;
         wearChassis: number = 0;
+        wearBody: number = 0;
+        liftAxle: boolean = false;
+        liftAxleIndicator: boolean = false;
         cargoDamage: number = 0;
         cargoAccessoryId: string = "";
         brandId: string = "";
@@ -177,6 +187,7 @@ module Funbit.Ets.Telemetry {
         revenue: number = 0;
         earnedXp: number = 0;
         cargoDamage: number = 0;
+        vehicleDamage: number = 0;
         distance: number = 0;
         deliveryTime: string = "";
         autoparkUsed: boolean = false;
@@ -204,6 +215,61 @@ module Funbit.Ets.Telemetry {
         sourceId: string = "";
         targetId: string = "";
         payAmount: number = 0;
+    }
+
+    class Ets2CarJob {
+        active: boolean = false;
+        market: string = "";
+        income: number = 0;
+        deliveryTime: string = "";
+        plannedDistanceKm: number = 0;
+        cargoId: string = "";
+        cargo: string = "";
+        unitCount: number = 0;
+        sourceCityId: string = "";
+        sourceCity: string = "";
+        sourceCompanyId: string = "";
+        sourceCompany: string = "";
+        destinationCityId: string = "";
+        destinationCity: string = "";
+        destinationCompanyId: string = "";
+        destinationCompany: string = "";
+        customerPrioCargoHandling: boolean = false;
+        customerPrioTime: boolean = false;
+        customerPrioVehicle: boolean = false;
+        cancelled: boolean = false;
+        delivered: boolean = false;
+        cancelPenalty: number = 0;
+        revenue: number = 0;
+        earnedXp: number = 0;
+        cargoDamage: number = 0;
+        vehicleDamage: number = 0;
+        distanceKm: number = 0;
+        deliveredDeliveryTime: string = "";
+    }
+
+    class Ets2BusJob {
+        active: boolean = false;
+        income: number = 0;
+        deliveryTime: string = "";
+        plannedDistanceKm: number = 0;
+        cargoId: string = "";
+        cargo: string = "";
+        unitCount: number = 0;
+        sourceCityId: string = "";
+        sourceCity: string = "";
+        sourceCompanyId: string = "";
+        sourceCompany: string = "";
+        destinationCityId: string = "";
+        destinationCity: string = "";
+        destinationCompanyId: string = "";
+        destinationCompany: string = "";
+    }
+
+    class Ets2RefuelEvent {
+        refueling: boolean = false;
+        refuelPayed: boolean = false;
+        amount: number = 0;
     }
 
     class Ets2Vector {
@@ -236,17 +302,22 @@ module Funbit.Ets.Telemetry {
         trailer9: Ets2Trailer;
         trailer10: Ets2Trailer;
         job: Ets2Job;
+        carJob: Ets2CarJob;
+        busJob: Ets2BusJob;
         navigation: Ets2Navigation;
         finedEvent: Ets2FinedEvent;
         jobEvent: Ets2JobEvent;
         tollgateEvent: Ets2TollgateEvent;
         ferryEvent: Ets2FerryEvent;
         trainEvent: Ets2TrainEvent;
+        refuelEvent: Ets2RefuelEvent;
         constructor() {
             this.game = new Ets2Game();
             this.truck = new Ets2Truck();
             this.cargo = new Ets2Cargo();
             this.job = new Ets2Job();
+            this.carJob = new Ets2CarJob();
+            this.busJob = new Ets2BusJob();
             this.navigation = new Ets2Navigation();
             this.trailer1 = new Ets2Trailer();
             this.trailer2 = new Ets2Trailer();
@@ -263,6 +334,7 @@ module Funbit.Ets.Telemetry {
             this.tollgateEvent = new Ets2TollgateEvent();
             this.ferryEvent = new Ets2FerryEvent();
             this.trainEvent = new Ets2TrainEvent();
+            this.refuelEvent = new Ets2RefuelEvent();
         }
     }
 
@@ -424,6 +496,11 @@ module Funbit.Ets.Telemetry {
             data.game.time = this.timeToReadableString(data.game.time);
             data.job.deadlineTime = this.timeToReadableString(data.job.deadlineTime);
             data.job.remainingTime = this.timeDifferenceToReadableString(data.job.remainingTime);
+            // car/bus job delivery windows (guarded: older servers may not send them)
+            if (data.carJob != null)
+                data.carJob.deliveryTime = this.timeToReadableString(data.carJob.deliveryTime);
+            if (data.busJob != null)
+                data.busJob.deliveryTime = this.timeToReadableString(data.busJob.deliveryTime);
             return data;
         }
 

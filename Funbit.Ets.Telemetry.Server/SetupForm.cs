@@ -167,7 +167,7 @@ namespace Funbit.Ets.Telemetry.Server
 
         private void helpLabel_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            ProcessHelper.OpenUrl("https://github.com/Funbit/ets2-telemetry-server");
+            ProcessHelper.OpenUrl("https://github.com/meatlayer/TelemetryServer4/releases");
         }
     }
 }

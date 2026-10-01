@@ -83,6 +83,8 @@ namespace Funbit.Ets.Telemetry.Server.Data
             }
         }
         public IEts2Job Job => new Ets2Job(_rawData);
+        public IEts2CarJob CarJob => new Ets2CarJob(_rawData);
+        public IEts2BusJob BusJob => new Ets2BusJob(_rawData);
         public IEts2Cargo Cargo => new Ets2Cargo(_rawData);
         public IEts2Navigation Navigation => new Ets2Navigation(_rawData);
         public IEts2FinedGameplayEvent FinedEvent => new Ets2FinedGameplayEvent(_rawData);
@@ -90,6 +92,7 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public IEts2TollgateGameplayEvent TollgateEvent => new Ets2TollgateGameplayEvent(_rawData);
         public IEts2FerryGameplayEvent FerryEvent => new Ets2FerryGameplayEvent(_rawData);
         public IEts2TrainGameplayEvent TrainEvent => new Ets2TrainGameplayEvent(_rawData);
+        public IEts2RefuelGameplayEvent RefuelEvent => new Ets2RefuelGameplayEvent(_rawData);
     }
 
     class Ets2Game : IEts2Game
@@ -110,6 +113,7 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public DateTime Time => Ets2TelemetryData.MinutesToDate(_rawData.Struct.timeAbsolute);
         public float TimeScale => _rawData.Struct.localScale;
         public DateTime NextRestStopTime => Ets2TelemetryData.MinutesToDate(_rawData.Struct.nextRestStop);
+        public DateTime NextMandatoryBreakTime => Ets2TelemetryData.MinutesToDate(_rawData.Struct.nextMandatoryBreak);
         public string Version => $"{_rawData.Struct.ets2_version_major}.{_rawData.Struct.ets2_version_minor}";
         public string TelemetryPluginVersion => _rawData.Struct.ets2_telemetry_plugin_revision.ToString();
         public string TelemetryServerVersion => Assembly.GetEntryAssembly().GetName().Version.ToString();
@@ -194,6 +198,9 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public float WearCabin => _rawData.Struct.wearCabin;
         public float WearChassis => _rawData.Struct.wearChassis;
         public float WearWheels => _rawData.Struct.wearWheels;
+        public bool DifferentialLock => _rawData.Struct.differentialLock != 0;
+        public bool LiftAxle => _rawData.Struct.liftAxle != 0;
+        public bool LiftAxleIndicator => _rawData.Struct.liftAxleIndicator != 0;
         public float UserSteer => _rawData.Struct.userSteer;
         public float UserThrottle => _rawData.Struct.userThrottle;
         public float UserBrake => _rawData.Struct.userBrake;
@@ -213,7 +220,7 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public float BrakeTemperature => _rawData.Struct.brakeTemperature;
         public float Adblue => _rawData.Struct.adblue;
         public float AdblueCapacity => _rawData.Struct.adblueCapacity;
-        public float AdblueAverageConsumption => 0.0F; // Removed in SDK 1.9
+        public float AdblueAverageConsumption => _rawData.Struct.adblueAvgConsumption;
         public bool AdblueWarningOn => _rawData.Struct.adblueWarning != 0;
         public float AirPressure => _rawData.Struct.airPressure;
         public bool AirPressureWarningOn => _rawData.Struct.airPressureWarning != 0;
@@ -244,6 +251,7 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public bool LightsBeaconOn => _rawData.Struct.lightsBeacon != 0;
         public bool LightsBrakeOn => _rawData.Struct.lightsBrake != 0;
         public bool LightsReverseOn => _rawData.Struct.lightsReverse != 0;
+        public bool HazardWarningOn => _rawData.Struct.lightsHazard != 0;
 
         public IEts2Placement Placement => new Ets2Placement(
             _rawData.Struct.coordinateX,
@@ -635,6 +643,12 @@ namespace Funbit.Ets.Telemetry.Server.Data
 
         // ReSharper disable once PossibleNullReferenceException
         public float WearChassis => (float)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}wearChassis").GetValue(_rawData.Struct);
+
+        // ReSharper disable once PossibleNullReferenceException
+        public float WearBody => (float)_rawData.Struct.GetType().GetField($"trailer{_trailerNumber}wearBody").GetValue(_rawData.Struct);
+
+        public bool LiftAxle => _rawData.Struct.trailerLiftAxle != 0;
+        public bool LiftAxleIndicator => _rawData.Struct.trailerLiftAxleIndicator != 0;
         
         private float _wear;
         public float Wear
@@ -770,6 +784,8 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public bool SpecialTransport => _rawData.Struct.specialJob != 0;
 
         public string JobMarket => Ets2TelemetryData.BytesToString(_rawData.Struct.jobMarket);
+
+        public int PlannedDistanceKm => _rawData.Struct.plannedDistanceKm;
     }
 
     class Ets2Cargo : IEts2Cargo
@@ -820,6 +836,7 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public int Revenue => (int)_rawData.Struct.jobDeliveredRevenue;
         public int EarnedXp => _rawData.Struct.jobDeliveredEarnedXp;
         public float CargoDamage => _rawData.Struct.cargoDamage;
+        public float VehicleDamage => _rawData.Struct.carJobDeliveredVehicleDamage;
         public int Distance => (int)_rawData.Struct.navigationDistance;
         public DateTime DeliveryTime => Ets2TelemetryData.MinutesToDate((int)_rawData.Struct.jobDeliveredDeliveryTime);
         public bool AutoparkUsed => _rawData.Struct.jobDelieveredAutoparkUsed != 0;
@@ -872,6 +889,90 @@ namespace Funbit.Ets.Telemetry.Server.Data
         public string TargetId => Ets2TelemetryData.BytesToString(_rawData.Struct.trainTargetId);
         public int PayAmount => (int)_rawData.Struct.trainPayAmount;
     }
+
+    class Ets2CarJob : IEts2CarJob
+    {
+        readonly Box<Ets2TelemetryStructure> _rawData;
+
+        public Ets2CarJob(Box<Ets2TelemetryStructure> rawData)
+        {
+            _rawData = rawData;
+        }
+
+        public bool Active => _rawData.Struct.carJobActive != 0;
+        public string Market => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobMarket);
+        public int Income => (int)_rawData.Struct.carJobIncome;
+        public DateTime DeliveryTime => Ets2TelemetryData.MinutesToDate((int)_rawData.Struct.carJobDeliveryTime);
+        public int PlannedDistanceKm => _rawData.Struct.carJobPlannedDistanceKm;
+        public string CargoId => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCargoId);
+        public string Cargo => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCargo);
+        public int UnitCount => _rawData.Struct.carJobUnitCount;
+
+        public string SourceCityId => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCitySourceId);
+        public string SourceCity => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCitySource);
+        public string SourceCompanyId => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCompanySourceId);
+        public string SourceCompany => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCompanySource);
+        public string DestinationCityId => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCityDestinationId);
+        public string DestinationCity => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCityDestination);
+        public string DestinationCompanyId => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCompanyDestinationId);
+        public string DestinationCompany => Ets2TelemetryData.BytesToString(_rawData.Struct.carJobCompanyDestination);
+
+        public bool CustomerPrioCargoHandling => _rawData.Struct.carJobCustomerPrioCargo != 0;
+        public bool CustomerPrioTime => _rawData.Struct.carJobCustomerPrioTime != 0;
+        public bool CustomerPrioVehicle => _rawData.Struct.carJobCustomerPrioVehicle != 0;
+
+        public bool Cancelled => _rawData.Struct.carJobCancelled != 0;
+        public bool Delivered => _rawData.Struct.carJobDelivered != 0;
+        public int CancelPenalty => (int)_rawData.Struct.carJobCancelledPenalty;
+        public int Revenue => (int)_rawData.Struct.carJobDeliveredRevenue;
+        public int EarnedXp => _rawData.Struct.carJobDeliveredEarnedXp;
+        public float CargoDamage => _rawData.Struct.carJobDeliveredCargoDamage;
+        public float VehicleDamage => _rawData.Struct.carJobDeliveredVehicleDamage;
+        public float DistanceKm => _rawData.Struct.carJobDeliveredDistanceKm;
+        public DateTime DeliveredDeliveryTime => Ets2TelemetryData.MinutesToDate((int)_rawData.Struct.carJobDeliveredDeliveryTime);
+    }
+
+    class Ets2BusJob : IEts2BusJob
+    {
+        readonly Box<Ets2TelemetryStructure> _rawData;
+
+        public Ets2BusJob(Box<Ets2TelemetryStructure> rawData)
+        {
+            _rawData = rawData;
+        }
+
+        public bool Active => _rawData.Struct.busJobActive != 0;
+        public int Income => (int)_rawData.Struct.busJobIncome;
+        public DateTime DeliveryTime => Ets2TelemetryData.MinutesToDate((int)_rawData.Struct.busJobDeliveryTime);
+        public int PlannedDistanceKm => _rawData.Struct.busJobPlannedDistanceKm;
+        public string CargoId => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCargoId);
+        public string Cargo => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCargo);
+        public int UnitCount => _rawData.Struct.busJobUnitCount;
+
+        public string SourceCityId => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCitySourceId);
+        public string SourceCity => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCitySource);
+        public string SourceCompanyId => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCompanySourceId);
+        public string SourceCompany => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCompanySource);
+        public string DestinationCityId => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCityDestinationId);
+        public string DestinationCity => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCityDestination);
+        public string DestinationCompanyId => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCompanyDestinationId);
+        public string DestinationCompany => Ets2TelemetryData.BytesToString(_rawData.Struct.busJobCompanyDestination);
+    }
+
+    class Ets2RefuelGameplayEvent : IEts2RefuelGameplayEvent
+    {
+        readonly Box<Ets2TelemetryStructure> _rawData;
+
+        public Ets2RefuelGameplayEvent(Box<Ets2TelemetryStructure> rawData)
+        {
+            _rawData = rawData;
+        }
+
+        public bool Refueling => _rawData.Struct.refuel != 0;
+        public bool RefuelPayed => _rawData.Struct.refuelPayed != 0;
+        public float Amount => _rawData.Struct.refuelAmount;
+    }
+
     public class Ets2WheelSorter : IComparer<IEts2Wheel>
     {
         public int Compare(IEts2Wheel x, IEts2Wheel y) => (int)(x.Position.Z - y.Position.Z);

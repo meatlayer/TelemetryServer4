@@ -179,7 +179,10 @@
     <None Include="Ets2Plugins\win_x64\plugins\ets2-telemetry-server.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Content Include="Ets2TestTelemetry.json" />
+    <Content Include="..\Ets2TestTelemetry.json">
+      <Link>Ets2TestTelemetry.json</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="Html\scripts\app.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

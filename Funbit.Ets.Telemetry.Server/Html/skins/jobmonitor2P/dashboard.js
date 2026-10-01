@@ -437,7 +437,7 @@ Funbit.Ets.Telemetry.Dashboard.prototype.filter = function (data, utils) {
             data.job.deadlineTime = JSON.stringify(deadlineTime).replace(/"/g, '');
             data.realEstimatedTime = (deadlineTimeEM - Date.now()) / 60000;
         } else {
-            data.navigation.message +=
+            data.navigation.message = (data.navigation.message || '') +
                 "<font color='#f6c050'>" + tEMWarning1 + "</font>" + lb +
                 "<font color='#f0e6d2'>" + tEMWarning2 + "</font>" + lb +
                 "<font color='#5e4d29'>" + tEMWarning3 + "</font>" + lb ;
